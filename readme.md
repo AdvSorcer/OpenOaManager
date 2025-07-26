@@ -2,16 +2,16 @@
 
 ## 專案目標
 開發一個基於 Python Django 的開源 MIS 管理工具，提供企業 IT 管理人員所需的各種功能模組。
+允許二次開發及商業使用，只需要在下方保有專案名稱 (OpenOaManager)，及附上Github來源
 
 ## 專案啟動步驟
 
 ### 系統需求
-- Python 3.8 或以上版本
-- Git
+- Python 3.13.3 
 
 ### 1. 複製專案
 ```bash
-git clone [repository-url]
+git clone https://github.com/AdvSorcer/OpenOaManager.git
 cd OpenOaManager
 ```
 
