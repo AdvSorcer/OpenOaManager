@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}SSL 憑證管理 - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- 頁面標題 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-shield-lock"></i> SSL 憑證管理</h2>
+            <a href="{% url 'security:ssl_add' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> 新增憑證
+            </a>
+        </div>
+
+        <!-- 搜索和篩選 -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">搜索</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="憑證名稱、域名、發行機構..." 
+                               value="{{ search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">狀態</label>
+                        <select name="status" class="form-select">
+                            <option value="">全部狀態</option>
+                            {% for value, display in status_choices %}
+                                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">憑證類型</label>
+                        <select name="cert_type" class="form-select">
+                            <option value="">全部類型</option>
+                            {% for value, display in cert_type_choices %}
+                                <option value="{{ value }}" {% if cert_type_filter == value %}selected{% endif %}>
+                                    {{ display }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">排序</label>
+                        <select name="sort" class="form-select">
+                            <option value="expires_date" {% if sort_by == 'expires_date' %}selected{% endif %}>到期日期</option>
+                            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>憑證名稱</option>
+                            <option value="domain" {% if sort_by == 'domain' %}selected{% endif %}>域名</option>
+                            <option value="created_at" {% if sort_by == 'created_at' %}selected{% endif %}>建立時間</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-outline-primary">
+                                <i class="bi bi-search"></i> 搜索
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <a href="{% url 'security:ssl_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-clockwise"></i> 重置
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 憑證統計卡片 -->
+        <div class="row mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="card border-success">
+                    <div class="card-body text-center">
+                        <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2 mb-1 text-success">{{ page_obj.paginator.count }}</h4>
+                        <small class="text-muted">總憑證數</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card border-warning">
+                    <div class="card-body text-center">
+                        <i class="bi bi-exclamation-triangle text-warning" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2 mb-1 text-warning">-</h4>
+                        <small class="text-muted">即將到期</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card border-danger">
+                    <div class="card-body text-center">
+                        <i class="bi bi-x-circle text-danger" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2 mb-1 text-danger">-</h4>
+                        <small class="text-muted">已過期</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card border-info">
+                    <div class="card-body text-center">
+                        <i class="bi bi-check-circle text-info" style="font-size: 2rem;"></i>
+                        <h4 class="mt-2 mb-1 text-info">-</h4>
+                        <small class="text-muted">有效憑證</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 憑證列表 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    SSL 憑證列表 
+                    <span class="badge bg-secondary">{{ page_obj.paginator.count }} 個</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                {% if page_obj %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>憑證名稱</th>
+                                    <th>域名</th>
+                                    <th>類型</th>
+                                    <th>發行機構</th>
+                                    <th>狀態</th>
+                                    <th>發行日期</th>
+                                    <th>到期日期</th>
+                                    <th>到期狀態</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cert in page_obj %}
+                                    <tr>
+                                        <td>
+                                            <div>
+                                                <strong>{{ cert.name }}</strong>
+                                                {% if cert.san_domains %}
+                                                    <br><small class="text-muted">
+                                                        <i class="bi bi-plus-circle"></i> 
+                                                        +{{ cert.san_domains|length }} 個域名
+                                                    </small>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="font-monospace">{{ cert.domain }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ cert.get_cert_type_display }}</span>
+                                        </td>
+                                        <td>
+                                            <small>{{ cert.issuer }}</small>
+                                        </td>
+                                        <td>
+                                            {% if cert.status == 'valid' %}
+                                                <span class="badge bg-success">{{ cert.get_status_display }}</span>
+                                            {% elif cert.status == 'expired' %}
+                                                <span class="badge bg-danger">{{ cert.get_status_display }}</span>
+                                            {% elif cert.status == 'expiring' %}
+                                                <span class="badge bg-warning">{{ cert.get_status_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ cert.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ cert.issued_date|date:"Y-m-d" }}</small>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ cert.expires_date|date:"Y-m-d" }}</small>
+                                        </td>
+                                        <td>
+                                            {% if cert.days_until_expiry != None %}
+                                                {% if cert.days_until_expiry < 0 %}
+                                                    <span class="text-danger">
+                                                        <i class="bi bi-exclamation-triangle"></i>
+                                                        已過期 {{ cert.days_until_expiry|make_list|slice:"1:"|join:"" }} 天
+                                                    </span>
+                                                {% elif cert.days_until_expiry <= cert.remind_days_before %}
+                                                    <span class="text-warning">
+                                                        <i class="bi bi-clock"></i>
+                                                        {{ cert.days_until_expiry }} 天後到期
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-success">
+                                                        <i class="bi bi-check-circle"></i>
+                                                        {{ cert.days_until_expiry }} 天後到期
+                                                    </span>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="text-muted">尚未設定</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="{% url 'security:ssl_detail' cert.pk %}" 
+                                                   class="btn btn-outline-primary btn-sm" title="查看詳情">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                                <a href="{% url 'security:ssl_edit' cert.pk %}" 
+                                                   class="btn btn-outline-secondary btn-sm" title="編輯">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-outline-danger btn-sm" 
+                                                        onclick="confirmDelete('{{ cert.name }}', '{% url 'security:ssl_delete' cert.pk %}')"
+                                                        title="刪除">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 分頁 -->
+                    {% if page_obj.has_other_pages %}
+                        <div class="card-footer">
+                            <nav aria-label="分頁導航">
+                                <ul class="pagination justify-content-center mb-0">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if cert_type_filter %}&cert_type={{ cert_type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                                <i class="bi bi-chevron-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if cert_type_filter %}&cert_type={{ cert_type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                                <i class="bi bi-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for page_num in page_obj.paginator.page_range %}
+                                        {% if page_num == page_obj.number %}
+                                            <li class="page-item active">
+                                                <span class="page-link">{{ page_num }}</span>
+                                            </li>
+                                        {% elif page_num > page_obj.number|add:'-3' and page_num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_num }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if cert_type_filter %}&cert_type={{ cert_type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                                    {{ page_num }}
+                                                </a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if cert_type_filter %}&cert_type={{ cert_type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if cert_type_filter %}&cert_type={{ cert_type_filter }}{% endif %}{% if sort_by %}&sort={{ sort_by }}{% endif %}">
+                                                <i class="bi bi-chevron-double-right"></i>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                            <div class="text-center mt-2">
+                                <small class="text-muted">
+                                    第 {{ page_obj.number }} 頁，共 {{ page_obj.paginator.num_pages }} 頁
+                                    (共 {{ page_obj.paginator.count }} 個憑證)
+                                </small>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-shield-lock text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="text-muted mt-3">沒有找到 SSL 憑證</h5>
+                        <p class="text-muted">
+                            {% if search or status_filter or cert_type_filter %}
+                                嘗試調整搜索條件或篩選選項
+                            {% else %}
+                                開始建立您的第一個 SSL 憑證記錄
+                            {% endif %}
+                        </p>
+                        <a href="{% url 'security:ssl_add' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> 新增憑證
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認模態框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">確認刪除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您確定要刪除 SSL 憑證「<span id="certName"></span>」嗎？</p>
+                <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> 此操作無法復原！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">確認刪除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(certName, deleteUrl) {
+    document.getElementById('certName').textContent = certName;
+    document.getElementById('deleteForm').action = deleteUrl;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+</script>
+{% endblock %} 

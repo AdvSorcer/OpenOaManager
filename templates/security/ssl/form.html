@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- 頁面標題 -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'security:ssl_list' %}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i> 返回列表
+            </a>
+            <h2><i class="bi bi-shield-lock"></i> {{ title }}</h2>
+        </div>
+
+        <!-- 表單卡片 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear"></i> 憑證設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- 基本資訊 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-info-circle"></i> 基本資訊
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    憑證名稱 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">為此憑證指定一個易識別的名稱</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.domain.id_for_label }}" class="form-label">
+                                    主域名 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.domain }}
+                                {% if form.domain.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.domain.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">憑證的主要域名（如：example.com）</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.cert_type.id_for_label }}" class="form-label">
+                                    憑證類型 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.cert_type }}
+                                {% if form.cert_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.cert_type.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.issuer.id_for_label }}" class="form-label">
+                                    發行機構 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.issuer }}
+                                {% if form.issuer.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.issuer.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">如：Let's Encrypt, DigiCert, Comodo 等</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 憑證詳細資訊 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-file-text"></i> 憑證詳細資訊
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.serial_number.id_for_label }}" class="form-label">
+                                    序號 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.serial_number }}
+                                {% if form.serial_number.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.serial_number.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">憑證的唯一序號</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.remind_days_before.id_for_label }}" class="form-label">
+                                    提前提醒天數
+                                </label>
+                                {{ form.remind_days_before }}
+                                {% if form.remind_days_before.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.remind_days_before.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">在憑證到期前多少天開始提醒</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="{{ form.subject.id_for_label }}" class="form-label">
+                                    主體資訊 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.subject }}
+                                {% if form.subject.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.subject.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">憑證主體的詳細資訊（DN）</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="{{ form.san_domains.id_for_label }}" class="form-label">
+                                    SAN 域名
+                                </label>
+                                {{ form.san_domains }}
+                                {% if form.san_domains.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.san_domains.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">主體別名中的其他域名，多個域名請用逗號分隔</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 時間資訊 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-calendar"></i> 時間資訊
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.issued_date.id_for_label }}" class="form-label">
+                                    發行日期 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.issued_date }}
+                                {% if form.issued_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.issued_date.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">憑證的發行日期</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.expires_date.id_for_label }}" class="form-label">
+                                    到期日期 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.expires_date }}
+                                {% if form.expires_date.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.expires_date.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">憑證的到期日期</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 檔案上傳 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-cloud-upload"></i> 憑證檔案
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.certificate_file.id_for_label }}" class="form-label">
+                                    憑證檔案
+                                </label>
+                                {{ form.certificate_file }}
+                                {% if form.certificate_file.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.certificate_file.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">支援的格式：.crt, .pem, .cer</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.private_key_file.id_for_label }}" class="form-label">
+                                    私鑰檔案
+                                </label>
+                                {{ form.private_key_file }}
+                                {% if form.private_key_file.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.private_key_file.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">支援的格式：.key, .pem</div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <strong>安全提醒：</strong>
+                                私鑰檔案包含敏感資訊，請確保檔案安全並定期備份。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 表單錯誤 -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- 按鈕 -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'security:ssl_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> 取消
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 幫助資訊 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-question-circle"></i> 使用說明
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>憑證類型說明：</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>DV憑證：</strong> 域名驗證憑證，驗證級別最低</li>
+                            <li><strong>OV憑證：</strong> 組織驗證憑證，中等驗證級別</li>
+                            <li><strong>EV憑證：</strong> 擴展驗證憑證，最高驗證級別</li>
+                            <li><strong>萬用憑證：</strong> 可用於多個子域名</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>SAN 域名格式：</h6>
+                        <ul class="list-unstyled">
+                            <li><code>www.example.com</code></li>
+                            <li><code>mail.example.com, api.example.com</code></li>
+                            <li><code>*.example.com</code> （萬用字元）</li>
+                        </ul>
+                        <h6 class="mt-3">檔案格式：</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>憑證：</strong> .crt, .pem, .cer</li>
+                            <li><strong>私鑰：</strong> .key, .pem</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 日期欄位的驗證
+    const issuedDate = document.getElementById('{{ form.issued_date.id_for_label }}');
+    const expiresDate = document.getElementById('{{ form.expires_date.id_for_label }}');
+    
+    function validateDates() {
+        if (issuedDate.value && expiresDate.value) {
+            const issued = new Date(issuedDate.value);
+            const expires = new Date(expiresDate.value);
+            
+            if (expires <= issued) {
+                expiresDate.setCustomValidity('到期日期必須晚於發行日期');
+                expiresDate.classList.add('is-invalid');
+            } else {
+                expiresDate.setCustomValidity('');
+                expiresDate.classList.remove('is-invalid');
+            }
+        }
+    }
+    
+    issuedDate.addEventListener('change', validateDates);
+    expiresDate.addEventListener('change', validateDates);
+    
+    // 表單提交驗證
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // 清除之前的錯誤樣式
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+        
+        // 驗證必填欄位
+        const requiredFields = [
+            '{{ form.name.id_for_label }}',
+            '{{ form.domain.id_for_label }}',
+            '{{ form.serial_number.id_for_label }}',
+            '{{ form.issued_date.id_for_label }}',
+            '{{ form.expires_date.id_for_label }}'
+        ];
+        
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            }
+        });
+        
+        // 驗證日期
+        validateDates();
+        if (expiresDate.classList.contains('is-invalid')) {
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            document.querySelector('.is-invalid').focus();
+        }
+    });
+    
+    // 檔案上傳預覽
+    const certFile = document.getElementById('{{ form.certificate_file.id_for_label }}');
+    const keyFile = document.getElementById('{{ form.private_key_file.id_for_label }}');
+    
+    function handleFileChange(input, allowedExtensions) {
+        const file = input.files[0];
+        if (file) {
+            const extension = file.name.split('.').pop().toLowerCase();
+            if (!allowedExtensions.includes(extension)) {
+                alert(`不支援的檔案格式：${extension}。請選擇 ${allowedExtensions.join(', ')} 格式的檔案。`);
+                input.value = '';
+            }
+        }
+    }
+    
+    certFile.addEventListener('change', function() {
+        handleFileChange(this, ['crt', 'pem', 'cer']);
+    });
+    
+    keyFile.addEventListener('change', function() {
+        handleFileChange(this, ['key', 'pem']);
+    });
+});
+</script>
+{% endblock %} 

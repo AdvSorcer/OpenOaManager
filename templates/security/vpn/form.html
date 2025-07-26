@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- 頁面標題 -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'security:vpn_list' %}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i> 返回列表
+            </a>
+            <h2><i class="bi bi-router"></i> {{ title }}</h2>
+        </div>
+
+        <!-- 表單卡片 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear"></i> VPN 連線設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- 基本資訊 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-info-circle"></i> 基本資訊
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    連線名稱 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">為此 VPN 連線指定一個易識別的名稱</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.connection_type.id_for_label }}" class="form-label">
+                                    連線類型 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.connection_type }}
+                                {% if form.connection_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.connection_type.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">選擇 VPN 連線的協定類型</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 伺服器設定 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-server"></i> 伺服器設定
+                            </h6>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="{{ form.server_address.id_for_label }}" class="form-label">
+                                    伺服器位址 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.server_address }}
+                                {% if form.server_address.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.server_address.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">VPN 伺服器的域名或 IP 位址（如：vpn.example.com 或 192.168.1.1）</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- IP 位址設定 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-globe"></i> IP 位址設定
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.local_ip.id_for_label }}" class="form-label">
+                                    本地 IP 位址
+                                </label>
+                                {{ form.local_ip }}
+                                {% if form.local_ip.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.local_ip.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">VPN 連線後的本地 IP 位址（選填）</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.remote_ip.id_for_label }}" class="form-label">
+                                    遠端 IP 位址
+                                </label>
+                                {{ form.remote_ip }}
+                                {% if form.remote_ip.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.remote_ip.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">VPN 伺服器分配的遠端 IP 位址（選填）</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 連線選項 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-toggles"></i> 連線選項
+                            </h6>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                    啟用自動連線
+                                </label>
+                                {% if form.is_active.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.is_active.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">勾選此選項以在系統啟動時自動建立 VPN 連線</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 表單錯誤 -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- 按鈕 -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'security:vpn_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> 取消
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 幫助資訊 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-question-circle"></i> VPN 類型說明
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>常見 VPN 協定：</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>OpenVPN：</strong> 開源、安全性高、配置靈活</li>
+                            <li><strong>L2TP/IPSec：</strong> 較舊但相容性好</li>
+                            <li><strong>SSTP：</strong> 微軟開發，適用於 Windows</li>
+                            <li><strong>WireGuard：</strong> 新一代協定，速度快</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>IP 位址設定：</h6>
+                        <ul class="list-unstyled">
+                            <li><strong>本地 IP：</strong> 客戶端在 VPN 網路中的位址</li>
+                            <li><strong>遠端 IP：</strong> VPN 伺服器分配的位址</li>
+                            <li><strong>靜態 IP：</strong> 固定不變的 IP 位址</li>
+                            <li><strong>動態 IP：</strong> 系統自動分配的 IP 位址</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>提示：</strong>
+                    IP 位址欄位為選填，如果留空，系統將使用預設的動態分配設定。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 表單提交驗證
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // 清除之前的錯誤樣式
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+        
+        // 驗證必填欄位
+        const requiredFields = [
+            '{{ form.name.id_for_label }}',
+            '{{ form.connection_type.id_for_label }}',
+            '{{ form.server_address.id_for_label }}'
+        ];
+        
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            }
+        });
+        
+        // 驗證 IP 位址格式
+        const localIpField = document.getElementById('{{ form.local_ip.id_for_label }}');
+        const remoteIpField = document.getElementById('{{ form.remote_ip.id_for_label }}');
+        
+        function validateIP(field) {
+            if (field.value.trim()) {
+                const ipRegex = /^(\d{1,3}\.){3}\d{1,3}$/;
+                if (!ipRegex.test(field.value.trim())) {
+                    field.classList.add('is-invalid');
+                    return false;
+                }
+                
+                // 檢查每個數字是否在 0-255 範圍內
+                const parts = field.value.trim().split('.');
+                for (let part of parts) {
+                    const num = parseInt(part);
+                    if (num < 0 || num > 255) {
+                        field.classList.add('is-invalid');
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+        
+        if (!validateIP(localIpField)) {
+            isValid = false;
+        }
+        
+        if (!validateIP(remoteIpField)) {
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            e.preventDefault();
+            document.querySelector('.is-invalid').focus();
+        }
+    });
+    
+    // 連線類型變更時的提示
+    const connectionTypeField = document.getElementById('{{ form.connection_type.id_for_label }}');
+    connectionTypeField.addEventListener('change', function() {
+        const selectedType = this.value;
+        let message = '';
+        
+        switch(selectedType) {
+            case 'openvpn':
+                message = 'OpenVPN 需要配置檔案，請聯絡系統管理員獲取。';
+                break;
+            case 'l2tp':
+                message = 'L2TP/IPSec 需要預共享金鑰和用戶認證。';
+                break;
+            case 'sstp':
+                message = 'SSTP 主要適用於 Windows 系統。';
+                break;
+            case 'wireguard':
+                message = 'WireGuard 需要生成公私鑰對。';
+                break;
+        }
+        
+        if (message) {
+            // 在連線類型欄位下方顯示提示
+            let existingAlert = this.parentNode.querySelector('.protocol-info');
+            if (existingAlert) {
+                existingAlert.remove();
+            }
+            
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-info alert-sm mt-2 protocol-info';
+            alert.innerHTML = `<i class="bi bi-info-circle"></i> ${message}`;
+            this.parentNode.appendChild(alert);
+        }
+    });
+});
+</script>
+{% endblock %} 

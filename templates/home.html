@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+
+{% block title %}首頁 - OpenOA Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">
+                <i class="bi bi-house"></i> 控制台總覽
+            </h1>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- 網路安全模組 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield"></i> 網路安全管理
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <a href="{% url 'security:firewall_list' %}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                            <i class="bi bi-firewall"></i><br>防火牆
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'security:ssl_list' %}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                            <i class="bi bi-shield-lock"></i><br>SSL憑證
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="{% url 'security:vpn_list' %}" class="btn btn-outline-primary btn-sm w-100">
+                            <i class="bi bi-router"></i><br>VPN管理
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-exclamation-triangle"></i><br>入侵偵測
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- IT資產管理模組 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-pc-display"></i> IT 資產管理
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                            <i class="bi bi-pc"></i><br>硬體設備
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                            <i class="bi bi-software"></i><br>軟體授權
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-calendar-check"></i><br>保固管理
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-cart"></i><br>採購申請
+                        </button>
+                    </div>
+                </div>
+                <small class="text-muted">即將推出...</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 服務台模組 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-headset"></i> 服務台
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                            <i class="bi bi-ticket"></i><br>工單管理
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                            <i class="bi bi-book"></i><br>知識庫
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-chat-dots"></i><br>聊天機器人
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-graph-up"></i><br>SLA追蹤
+                        </button>
+                    </div>
+                </div>
+                <small class="text-muted">即將推出...</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 行動裝置管理模組 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-phone"></i> 行動裝置管理
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                            <i class="bi bi-phone"></i><br>裝置管理
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                            <i class="bi bi-app"></i><br>應用分發
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-shield-x"></i><br>遠端清除
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                            <i class="bi bi-gear"></i><br>政策控制
+                        </button>
+                    </div>
+                </div>
+                <small class="text-muted">即將推出...</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 系統統計 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h3>系統統計</h3>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">防火牆規則</h5>
+                        <h2 class="card-text">--</h2>
+                        <small class="text-muted">條規則已配置</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">SSL 憑證</h5>
+                        <h2 class="card-text">--</h2>
+                        <small class="text-muted">張憑證有效</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-warning">VPN 連線</h5>
+                        <h2 class="card-text">--</h2>
+                        <small class="text-muted">個連線活躍</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title text-info">系統狀態</h5>
+                        <h2 class="card-text text-success">
+                            <i class="bi bi-check-circle"></i>
+                        </h2>
+                        <small class="text-muted">運行正常</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 快速操作 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h3>快速操作</h3>
+        <div class="btn-group" role="group">
+            <a href="{% url 'security:firewall_add' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> 新增防火牆規則
+            </a>
+            <a href="{% url 'security:ssl_add' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> 新增SSL憑證
+            </a>
+            <a href="{% url 'security:vpn_add' %}" class="btn btn-warning">
+                <i class="bi bi-plus-circle"></i> 新增VPN連線
+            </a>
+            <a href="/admin/" class="btn btn-outline-secondary">
+                <i class="bi bi-gear"></i> 管理後台
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

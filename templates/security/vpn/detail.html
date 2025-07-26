@@ -1,0 +1,486 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ connection.name }} - VPN 連線 - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- 頁面標題 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <a href="{% url 'security:vpn_list' %}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> 返回列表
+                </a>
+                <div>
+                    <h2>
+                        <i class="bi bi-router"></i> {{ connection.name }}
+                        {% if connection.is_active %}
+                            <i class="bi bi-circle-fill text-success ms-2" style="font-size: 0.5rem;" title="活躍連線"></i>
+                        {% endif %}
+                    </h2>
+                    <div class="text-muted">
+                        {{ connection.server_address }}
+                        <span class="mx-2">•</span>
+                        建立於 {{ connection.created_at|date:"Y年m月d日 H:i" }}
+                        {% if connection.user %}
+                            由 {{ connection.user.username }} 建立
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="btn-group">
+                {% if connection.status == 'connected' %}
+                    <button type="button" class="btn btn-warning" onclick="disconnectVPN('{{ connection.pk }}')">
+                        <i class="bi bi-stop-circle"></i> 中斷連線
+                    </button>
+                {% else %}
+                    <button type="button" class="btn btn-success" onclick="connectVPN('{{ connection.pk }}')">
+                        <i class="bi bi-play-circle"></i> 建立連線
+                    </button>
+                {% endif %}
+                <button type="button" class="btn btn-danger" 
+                        onclick="confirmDelete('{{ connection.name }}', '{% url 'security:vpn_delete' connection.pk %}')">
+                    <i class="bi bi-trash"></i> 刪除連線
+                </button>
+            </div>
+        </div>
+
+        <!-- 連線狀態警告 -->
+        {% if connection.status == 'error' %}
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i>
+                <strong>連線錯誤！</strong>
+                VPN 連線發生錯誤，請檢查網路設定或聯絡系統管理員。
+            </div>
+        {% elif connection.status == 'connecting' %}
+            <div class="alert alert-warning">
+                <i class="bi bi-clock"></i>
+                <strong>正在連線中...</strong>
+                VPN 連線正在建立中，請稍候。
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- 左側：連線詳細資訊 -->
+            <div class="col-lg-8">
+                <!-- 基本資訊 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle"></i> 基本資訊
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">連線名稱:</dt>
+                                    <dd class="col-sm-7">{{ connection.name }}</dd>
+                                    
+                                    <dt class="col-sm-5">連線類型:</dt>
+                                    <dd class="col-sm-7">
+                                        <span class="badge bg-light text-dark">{{ connection.get_connection_type_display }}</span>
+                                    </dd>
+                                    
+                                    <dt class="col-sm-5">伺服器位址:</dt>
+                                    <dd class="col-sm-7">
+                                        <span class="font-monospace">{{ connection.server_address }}</span>
+                                    </dd>
+                                    
+                                    <dt class="col-sm-5">用戶:</dt>
+                                    <dd class="col-sm-7">
+                                        <i class="bi bi-person-circle text-muted me-2"></i>
+                                        {{ connection.user.username }}
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-5">連線狀態:</dt>
+                                    <dd class="col-sm-7">
+                                        {% if connection.status == 'connected' %}
+                                            <span class="badge bg-success">{{ connection.get_status_display }}</span>
+                                        {% elif connection.status == 'disconnected' %}
+                                            <span class="badge bg-secondary">{{ connection.get_status_display }}</span>
+                                        {% elif connection.status == 'connecting' %}
+                                            <span class="badge bg-warning">{{ connection.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">{{ connection.get_status_display }}</span>
+                                        {% endif %}
+                                    </dd>
+                                    
+                                    <dt class="col-sm-5">自動連線:</dt>
+                                    <dd class="col-sm-7">
+                                        {% if connection.is_active %}
+                                            <i class="bi bi-check-circle text-success"></i> 已啟用
+                                        {% else %}
+                                            <i class="bi bi-x-circle text-muted"></i> 已停用
+                                        {% endif %}
+                                    </dd>
+                                    
+                                    <dt class="col-sm-5">連線時長:</dt>
+                                    <dd class="col-sm-7">
+                                        {% if connection.connected_at and connection.status == 'connected' %}
+                                            <span class="text-success">{{ connection.connection_duration }}</span>
+                                        {% else %}
+                                            <span class="text-muted">未連線</span>
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IP 位址資訊 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-globe"></i> IP 位址資訊
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="text-center p-4 border rounded">
+                                    <i class="bi bi-house text-primary" style="font-size: 2.5rem;"></i>
+                                    <h6 class="mt-3 mb-2">本地 IP 位址</h6>
+                                    <div class="font-monospace h5 text-primary">
+                                        {{ connection.local_ip|default:"未設定" }}
+                                    </div>
+                                    <small class="text-muted">客戶端在 VPN 網路中的位址</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center p-4 border rounded">
+                                    <i class="bi bi-globe text-info" style="font-size: 2.5rem;"></i>
+                                    <h6 class="mt-3 mb-2">遠端 IP 位址</h6>
+                                    <div class="font-monospace h5 text-info">
+                                        {{ connection.remote_ip|default:"未設定" }}
+                                    </div>
+                                    <small class="text-muted">VPN 伺服器分配的位址</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 資料使用量 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-arrow-up-down"></i> 資料使用量
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-success bg-opacity-10 rounded">
+                                    <i class="bi bi-arrow-up text-success" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2 mb-1 text-success">上傳</h6>
+                                    <div class="h5">{{ connection.bytes_sent|filesizeformat }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-primary bg-opacity-10 rounded">
+                                    <i class="bi bi-arrow-down text-primary" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2 mb-1 text-primary">下載</h6>
+                                    <div class="h5">{{ connection.bytes_received|filesizeformat }}</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center p-3 bg-info bg-opacity-10 rounded">
+                                    <i class="bi bi-plus-circle text-info" style="font-size: 2rem;"></i>
+                                    <h6 class="mt-2 mb-1 text-info">總計</h6>
+                                    <div class="h5">{{ connection.get_data_usage }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% if connection.bytes_sent == 0 and connection.bytes_received == 0 %}
+                            <div class="alert alert-info mt-3">
+                                <i class="bi bi-info-circle"></i>
+                                尚無資料傳輸記錄，可能是連線尚未建立或剛建立不久。
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 連線歷史 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-clock-history"></i> 連線歷史
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            {% if connection.connected_at %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-success"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">連線建立</h6>
+                                        <p class="timeline-text">{{ connection.connected_at|date:"Y年m月d日 H:i:s" }}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            {% if connection.disconnected_at %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker bg-secondary"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="timeline-title">連線中斷</h6>
+                                        <p class="timeline-text">{{ connection.disconnected_at|date:"Y年m月d日 H:i:s" }}</p>
+                                    </div>
+                                </div>
+                            {% endif %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="timeline-title">連線建立</h6>
+                                    <p class="timeline-text">{{ connection.created_at|date:"Y年m月d日 H:i:s" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：統計資訊和操作 -->
+            <div class="col-lg-4">
+                <!-- 快速操作 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-lightning"></i> 快速操作
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            {% if connection.status == 'connected' %}
+                                <button class="btn btn-outline-warning btn-sm" onclick="disconnectVPN('{{ connection.pk }}')">
+                                    <i class="bi bi-stop-circle"></i> 中斷連線
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-success btn-sm" onclick="connectVPN('{{ connection.pk }}')">
+                                    <i class="bi bi-play-circle"></i> 建立連線
+                                </button>
+                            {% endif %}
+                            
+                            <button class="btn btn-outline-info btn-sm" onclick="refreshStatus('{{ connection.pk }}')">
+                                <i class="bi bi-arrow-clockwise"></i> 重新整理狀態
+                            </button>
+                            
+                            <button class="btn btn-outline-secondary btn-sm" onclick="resetStatistics('{{ connection.pk }}')">
+                                <i class="bi bi-graph-down"></i> 重置統計
+                            </button>
+                            
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    onclick="confirmDelete('{{ connection.name }}', '{% url 'security:vpn_delete' connection.pk %}')">
+                                <i class="bi bi-trash"></i> 刪除連線
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 連線統計 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-bar-chart"></i> 連線統計
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h4 class="mb-1 text-success">
+                                        {% if connection.connected_at %}1{% else %}0{% endif %}
+                                    </h4>
+                                    <small class="text-muted">連線次數</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="mb-1 text-info">
+                                    {% if connection.status == 'connected' %}
+                                        {{ connection.connection_duration }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </h4>
+                                <small class="text-muted">本次連線時長</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 時間資訊 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-calendar"></i> 時間資訊
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="small">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">建立時間:</span>
+                                <span>{{ connection.created_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">最後更新:</span>
+                                <span>{{ connection.updated_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                            {% if connection.connected_at %}
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted">最後連線:</span>
+                                    <span>{{ connection.connected_at|date:"Y-m-d H:i" }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 技術資訊 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-gear"></i> 技術資訊
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="small">
+                            <div class="mb-2">
+                                <strong>協定類型:</strong>
+                                <span class="text-muted">{{ connection.get_connection_type_display }}</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>加密方式:</strong>
+                                <span class="text-muted">AES-256 (預設)</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>認證方式:</strong>
+                                <span class="text-muted">憑證 + 用戶名密碼</span>
+                            </div>
+                            <div>
+                                <strong>連接埠:</strong>
+                                <span class="text-muted">
+                                    {% if connection.connection_type == 'openvpn' %}1194{% elif connection.connection_type == 'l2tp' %}1701{% elif connection.connection_type == 'sstp' %}443{% else %}51820{% endif %} (預設)
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認模態框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">確認刪除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您確定要刪除 VPN 連線「<span id="connName"></span>」嗎？</p>
+                <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> 此操作無法復原！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">確認刪除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 20px;
+}
+
+.timeline-item:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: -21px;
+    top: 20px;
+    height: calc(100% - 10px);
+    width: 2px;
+    background-color: #dee2e6;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -25px;
+    top: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+}
+
+.timeline-content {
+    margin-left: 10px;
+}
+
+.timeline-title {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.timeline-text {
+    margin-bottom: 0;
+    font-size: 0.8rem;
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(connName, deleteUrl) {
+    document.getElementById('connName').textContent = connName;
+    document.getElementById('deleteForm').action = deleteUrl;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function connectVPN(connId) {
+    // 這裡可以實現建立 VPN 連線的功能
+    console.log('Connect VPN', connId);
+    alert('VPN 連線功能暫未實現');
+}
+
+function disconnectVPN(connId) {
+    // 這裡可以實現中斷 VPN 連線的功能
+    console.log('Disconnect VPN', connId);
+    alert('VPN 中斷功能暫未實現');
+}
+
+function refreshStatus(connId) {
+    // 這裡可以實現重新整理連線狀態的功能
+    console.log('Refresh VPN status', connId);
+    alert('狀態重新整理功能暫未實現，將重新載入頁面');
+    window.location.reload();
+}
+
+function resetStatistics(connId) {
+    // 這裡可以實現重置統計資料的功能
+    if (confirm('確定要重置此連線的統計資料嗎？此操作無法復原。')) {
+        console.log('Reset VPN statistics', connId);
+        alert('統計重置功能暫未實現');
+    }
+}
+</script>
+{% endblock %} 

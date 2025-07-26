@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ rule.name }} - 防火牆規則 - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <!-- 頁面標題 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <a href="{% url 'security:firewall_list' %}" class="btn btn-outline-secondary me-3">
+                    <i class="bi bi-arrow-left"></i> 返回列表
+                </a>
+                <div>
+                    <h2><i class="bi bi-firewall"></i> {{ rule.name }}</h2>
+                    <div class="text-muted">
+                        {% if rule.is_system_rule %}
+                            <i class="bi bi-shield-lock text-warning"></i> 系統規則
+                        {% endif %}
+                        建立於 {{ rule.created_at|date:"Y年m月d日 H:i" }}
+                        {% if rule.created_by %}
+                            由 {{ rule.created_by.username }} 建立
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="btn-group">
+                <a href="{% url 'security:firewall_edit' rule.pk %}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> 編輯規則
+                </a>
+                {% if not rule.is_system_rule %}
+                    <button type="button" class="btn btn-danger" 
+                            onclick="confirmDelete('{{ rule.name }}', '{% url 'security:firewall_delete' rule.pk %}')">
+                        <i class="bi bi-trash"></i> 刪除規則
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 左側：規則詳細資訊 -->
+            <div class="col-lg-8">
+                <!-- 基本資訊 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-info-circle"></i> 基本資訊
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">規則名稱:</dt>
+                                    <dd class="col-sm-8">{{ rule.name }}</dd>
+                                    
+                                    <dt class="col-sm-4">動作:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if rule.rule_type == 'allow' %}
+                                            <span class="badge bg-success">{{ rule.get_rule_type_display }}</span>
+                                        {% elif rule.rule_type == 'deny' %}
+                                            <span class="badge bg-danger">{{ rule.get_rule_type_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ rule.get_rule_type_display }}</span>
+                                        {% endif %}
+                                    </dd>
+                                    
+                                    <dt class="col-sm-4">狀態:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if rule.status == 'active' %}
+                                            <span class="badge bg-success">{{ rule.get_status_display }}</span>
+                                        {% elif rule.status == 'inactive' %}
+                                            <span class="badge bg-secondary">{{ rule.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">{{ rule.get_status_display }}</span>
+                                        {% endif %}
+                                    </dd>
+                                    
+                                    <dt class="col-sm-4">優先級:</dt>
+                                    <dd class="col-sm-8">
+                                        <span class="badge bg-info">{{ rule.priority }}</span>
+                                        <small class="text-muted ms-2">數字越小優先級越高</small>
+                                    </dd>
+                                </dl>
+                            </div>
+                            <div class="col-md-6">
+                                <dl class="row">
+                                    <dt class="col-sm-4">協定:</dt>
+                                    <dd class="col-sm-8">
+                                        <span class="badge bg-light text-dark">{{ rule.get_protocol_display }}</span>
+                                    </dd>
+                                    
+                                    <dt class="col-sm-4">方向:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if rule.direction == 'inbound' %}
+                                            <i class="bi bi-arrow-down text-primary"></i>
+                                        {% elif rule.direction == 'outbound' %}
+                                            <i class="bi bi-arrow-up text-success"></i>
+                                        {% else %}
+                                            <i class="bi bi-arrow-left-right text-info"></i>
+                                        {% endif %}
+                                        {{ rule.get_direction_display }}
+                                    </dd>
+                                    
+                                    <dt class="col-sm-4">系統規則:</dt>
+                                    <dd class="col-sm-8">
+                                        {% if rule.is_system_rule %}
+                                            <i class="bi bi-check-circle text-success"></i> 是
+                                        {% else %}
+                                            <i class="bi bi-x-circle text-muted"></i> 否
+                                        {% endif %}
+                                    </dd>
+                                </dl>
+                            </div>
+                        </div>
+                        
+                        {% if rule.description %}
+                            <hr>
+                            <div>
+                                <h6>規則說明:</h6>
+                                <p class="text-muted mb-0">{{ rule.description }}</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 網路配置 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="bi bi-globe"></i> 網路配置
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>來源 (Source)</h6>
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-geo-alt text-primary me-2"></i>
+                                        <strong>IP 位址:</strong>
+                                        <span class="ms-2 font-monospace">
+                                            {{ rule.source_ip|default:"任何 IP" }}
+                                        </span>
+                                    </div>
+                                    {% if rule.protocol != 'icmp' %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-hdd-network text-info me-2"></i>
+                                            <strong>埠號:</strong>
+                                            <span class="ms-2 font-monospace">
+                                                {{ rule.source_port|default:"任何埠" }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>目標 (Destination)</h6>
+                                <div class="bg-light p-3 rounded">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <i class="bi bi-bullseye text-success me-2"></i>
+                                        <strong>IP 位址:</strong>
+                                        <span class="ms-2 font-monospace">
+                                            {{ rule.destination_ip|default:"任何 IP" }}
+                                        </span>
+                                    </div>
+                                    {% if rule.protocol != 'icmp' %}
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-hdd-network text-info me-2"></i>
+                                            <strong>埠號:</strong>
+                                            <span class="ms-2 font-monospace">
+                                                {{ rule.destination_port|default:"任何埠" }}
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="alert alert-info">
+                                <h6 class="alert-heading">
+                                    <i class="bi bi-diagram-3"></i> 規則摘要
+                                </h6>
+                                <p class="mb-0 font-monospace">{{ rule.get_rule_summary }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近日誌 -->
+                {% if recent_logs %}
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="bi bi-clock-history"></i> 最近日誌
+                            </h5>
+                            <small class="text-muted">最近 10 條記錄</small>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>時間</th>
+                                            <th>類型</th>
+                                            <th>來源</th>
+                                            <th>目標</th>
+                                            <th>協定</th>
+                                            <th>封包大小</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for log in recent_logs %}
+                                            <tr>
+                                                <td>
+                                                    <small>{{ log.timestamp|date:"m/d H:i:s" }}</small>
+                                                </td>
+                                                <td>
+                                                    {% if log.log_type == 'hit' %}
+                                                        <span class="badge bg-info">{{ log.get_log_type_display }}</span>
+                                                    {% elif log.log_type == 'block' %}
+                                                        <span class="badge bg-danger">{{ log.get_log_type_display }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-success">{{ log.get_log_type_display }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <small class="font-monospace">
+                                                        {{ log.source_ip }}{% if log.source_port %}:{{ log.source_port }}{% endif %}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <small class="font-monospace">
+                                                        {{ log.destination_ip }}{% if log.destination_port %}:{{ log.destination_port }}{% endif %}
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <small>{{ log.protocol|upper }}</small>
+                                                </td>
+                                                <td>
+                                                    <small>{{ log.packet_size|default:"-" }} bytes</small>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- 右側：統計資訊和操作 -->
+            <div class="col-lg-4">
+                <!-- 統計資訊 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-bar-chart"></i> 統計資訊
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6">
+                                <div class="border-end">
+                                    <h4 class="mb-1 text-primary">{{ rule.hit_count }}</h4>
+                                    <small class="text-muted">命中次數</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <h4 class="mb-1 text-info">
+                                    {% if rule.last_hit %}
+                                        {{ rule.last_hit|timesince }}前
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </h4>
+                                <small class="text-muted">最後命中</small>
+                            </div>
+                        </div>
+                        {% if rule.last_hit %}
+                            <hr>
+                            <small class="text-muted">
+                                <i class="bi bi-clock"></i> 
+                                最後命中時間: {{ rule.last_hit|date:"Y-m-d H:i:s" }}
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 時間資訊 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-calendar"></i> 時間資訊
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="small">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">建立時間:</span>
+                                <span>{{ rule.created_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted">最後更新:</span>
+                                <span>{{ rule.updated_at|date:"Y-m-d H:i" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速操作 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-lightning"></i> 快速操作
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            {% if rule.status == 'active' %}
+                                <button class="btn btn-outline-warning btn-sm" onclick="toggleRuleStatus('{{ rule.pk }}', 'inactive')">
+                                    <i class="bi bi-pause-circle"></i> 停用規則
+                                </button>
+                            {% else %}
+                                <button class="btn btn-outline-success btn-sm" onclick="toggleRuleStatus('{{ rule.pk }}', 'active')">
+                                    <i class="bi bi-play-circle"></i> 啟用規則
+                                </button>
+                            {% endif %}
+                            
+                            <a href="{% url 'security:firewall_edit' rule.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i> 編輯規則
+                            </a>
+                            
+                            <button class="btn btn-outline-info btn-sm" onclick="copyRule('{{ rule.pk }}')">
+                                <i class="bi bi-files"></i> 複製規則
+                            </button>
+                            
+                            {% if not rule.is_system_rule %}
+                                <button class="btn btn-outline-danger btn-sm" 
+                                        onclick="confirmDelete('{{ rule.name }}', '{% url 'security:firewall_delete' rule.pk %}')">
+                                    <i class="bi bi-trash"></i> 刪除規則
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認模態框 -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">確認刪除</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>您確定要刪除防火牆規則「<span id="ruleName"></span>」嗎？</p>
+                <p class="text-danger"><i class="bi bi-exclamation-triangle"></i> 此操作無法復原！</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <form id="deleteForm" method="post" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">確認刪除</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(ruleName, deleteUrl) {
+    document.getElementById('ruleName').textContent = ruleName;
+    document.getElementById('deleteForm').action = deleteUrl;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+function toggleRuleStatus(ruleId, newStatus) {
+    // 這裡可以使用 AJAX 請求來切換規則狀態
+    console.log('Toggle rule', ruleId, 'to', newStatus);
+    // 暫時使用頁面跳轉，後續可以改為 AJAX
+    window.location.reload();
+}
+
+function copyRule(ruleId) {
+    // 這裡可以實現複製規則的功能
+    console.log('Copy rule', ruleId);
+    alert('複製功能暫未實現，將跳轉到新增頁面');
+    window.location.href = '{% url "security:firewall_add" %}';
+}
+</script>
+{% endblock %} 

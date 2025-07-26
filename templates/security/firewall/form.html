@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- 頁面標題 -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'security:firewall_list' %}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left"></i> 返回列表
+            </a>
+            <h2><i class="bi bi-firewall"></i> {{ title }}</h2>
+        </div>
+
+        <!-- 表單卡片 -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-gear"></i> 規則設定
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- 基本資訊 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-info-circle"></i> 基本資訊
+                            </h6>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label">
+                                    規則名稱 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.name.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="{{ form.rule_type.id_for_label }}" class="form-label">
+                                    動作 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.rule_type }}
+                                {% if form.rule_type.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.rule_type.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="{{ form.status.id_for_label }}" class="form-label">
+                                    狀態 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.status.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    規則說明
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.description.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">簡要描述此規則的用途和作用</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 網路設定 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-globe"></i> 網路設定
+                            </h6>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.protocol.id_for_label }}" class="form-label">
+                                    協定 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.protocol }}
+                                {% if form.protocol.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.protocol.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.direction.id_for_label }}" class="form-label">
+                                    方向 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.direction }}
+                                {% if form.direction.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.direction.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label for="{{ form.priority.id_for_label }}" class="form-label">
+                                    優先級 <span class="text-danger">*</span>
+                                </label>
+                                {{ form.priority }}
+                                {% if form.priority.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.priority.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">數字越小優先級越高 (1-9999)</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.source_ip.id_for_label }}" class="form-label">
+                                    來源 IP 位址
+                                </label>
+                                {{ form.source_ip }}
+                                {% if form.source_ip.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.source_ip.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">留空表示任何 IP 位址</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.source_port.id_for_label }}" class="form-label">
+                                    來源埠號
+                                </label>
+                                {{ form.source_port }}
+                                {% if form.source_port.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.source_port.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">格式：80, 443, 8000-9000</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.destination_ip.id_for_label }}" class="form-label">
+                                    目標 IP 位址
+                                </label>
+                                {{ form.destination_ip }}
+                                {% if form.destination_ip.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.destination_ip.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">留空表示任何 IP 位址</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="{{ form.destination_port.id_for_label }}" class="form-label">
+                                    目標埠號
+                                </label>
+                                {{ form.destination_port }}
+                                {% if form.destination_port.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.destination_port.errors.0 }}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">格式：80, 443, 8000-9000</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 進階設定 -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-primary border-bottom pb-2 mb-3">
+                                <i class="bi bi-gear-fill"></i> 進階設定
+                            </h6>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                {{ form.is_system_rule }}
+                                <label class="form-check-label" for="{{ form.is_system_rule.id_for_label }}">
+                                    系統規則
+                                </label>
+                                <div class="form-text">系統規則無法被一般用戶刪除</div>
+                                {% if form.is_system_rule.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {{ form.is_system_rule.errors.0 }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 表單錯誤 -->
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                    {% endif %}
+
+                    <!-- 按鈕 -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'security:firewall_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> 取消
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> {{ submit_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 幫助資訊 -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-question-circle"></i> 使用說明
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>動作類型：</h6>
+                        <ul class="list-unstyled">
+                            <li><span class="badge bg-success me-2">允許</span>允許符合條件的連線通過</li>
+                            <li><span class="badge bg-danger me-2">拒絕</span>拒絕連線並回傳錯誤訊息</li>
+                            <li><span class="badge bg-warning me-2">丟棄</span>直接丟棄封包，不回傳任何訊息</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>埠號格式：</h6>
+                        <ul class="list-unstyled">
+                            <li><code>80</code> - 單一埠號</li>
+                            <li><code>80,443</code> - 多個埠號</li>
+                            <li><code>8000-9000</code> - 埠號範圍</li>
+                            <li><code>80,443,8000-9000</code> - 混合格式</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 協定變更時的處理
+    const protocolSelect = document.getElementById('{{ form.protocol.id_for_label }}');
+    const sourcePortField = document.getElementById('{{ form.source_port.id_for_label }}');
+    const destPortField = document.getElementById('{{ form.destination_port.id_for_label }}');
+    
+    function togglePortFields() {
+        const isIcmp = protocolSelect.value === 'icmp';
+        sourcePortField.disabled = isIcmp;
+        destPortField.disabled = isIcmp;
+        
+        if (isIcmp) {
+            sourcePortField.value = '';
+            destPortField.value = '';
+            sourcePortField.parentElement.style.opacity = '0.6';
+            destPortField.parentElement.style.opacity = '0.6';
+        } else {
+            sourcePortField.parentElement.style.opacity = '1';
+            destPortField.parentElement.style.opacity = '1';
+        }
+    }
+    
+    protocolSelect.addEventListener('change', togglePortFields);
+    togglePortFields(); // 初始化
+    
+    // 表單驗證
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        let isValid = true;
+        
+        // 清除之前的錯誤樣式
+        document.querySelectorAll('.is-invalid').forEach(el => {
+            el.classList.remove('is-invalid');
+        });
+        
+        // 驗證必填欄位
+        const requiredFields = ['{{ form.name.id_for_label }}', '{{ form.priority.id_for_label }}'];
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid');
+                isValid = false;
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            document.querySelector('.is-invalid').focus();
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}新增 SSL 憑證 - OpenOA Manager{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <h1 class="h2">
+                <i class="bi bi-plus-circle"></i> 新增 SSL 憑證
+            </h1>
+            <div class="btn-toolbar mb-2 mb-md-0">
+                <a href="{% url 'security:ssl_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> 返回列表
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> SSL 憑證新增功能正在開發中...
+        </div>
+    </div>
+</div>
+{% endblock %} 
