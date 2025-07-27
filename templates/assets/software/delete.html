@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}刪除軟體授權 - {{ object.software_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="fas fa-exclamation-triangle"></i> 刪除軟體授權
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle"></i> 警告
+                        </h5>
+                        <p class="mb-2">您即將刪除以下軟體授權：</p>
+                        <hr>
+                        <div class="row">
+                            <div class="col-4"><strong>軟體名稱：</strong></div>
+                            <div class="col-8">{{ object.software_name }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4"><strong>版本：</strong></div>
+                            <div class="col-8">{{ object.version|default:"未設定" }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4"><strong>授權類型：</strong></div>
+                            <div class="col-8">{{ object.get_license_type_display }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4"><strong>總授權數：</strong></div>
+                            <div class="col-8">{{ object.total_licenses }}</div>
+                        </div>
+                        <div class="row">
+                            <div class="col-4"><strong>已使用：</strong></div>
+                            <div class="col-8">{{ object.used_licenses }}</div>
+                        </div>
+                        {% if object.assigned_users.exists %}
+                        <div class="row">
+                            <div class="col-4"><strong>分配使用者：</strong></div>
+                            <div class="col-8">
+                                {% for user in object.assigned_users.all %}
+                                    <span class="badge badge-primary">{{ user.get_full_name|default:user.username }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        <hr>
+                        <p class="mb-0">
+                            <strong>此操作無法復原！</strong>
+                            刪除此軟體授權後，所有相關的使用者分配也將被取消。
+                        </p>
+                        {% if object.assigned_users.exists %}
+                        <p class="mb-0 mt-2">
+                            <strong>注意：</strong>目前有 {{ object.assigned_users.count }} 個使用者正在使用此授權。
+                        </p>
+                        {% endif %}
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'assets:software_detail' object.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> 取消
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> 確認刪除
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

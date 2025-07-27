@@ -1,0 +1,323 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}軟體授權詳細資料 - {{ license.software_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 頁面標題 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">{{ license.software_name }}</h1>
+                    <p class="mb-0">版本：{{ license.version|default:"未設定" }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'assets:software_edit' license.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> 編輯
+                    </a>
+                    <a href="{% url 'assets:software_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 基本資訊 -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">基本資訊</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>軟體名稱：</strong></td>
+                                    <td>{{ license.software_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>版本：</strong></td>
+                                    <td>{{ license.version|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>供應商：</strong></td>
+                                    <td>
+                                        {% if license.vendor %}
+                                            <a href="{% url 'assets:vendor_detail' license.vendor.pk %}">{{ license.vendor.name }}</a>
+                                        {% else %}
+                                            <span class="text-muted">未設定</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>授權類型：</strong></td>
+                                    <td>
+                                        <span class="badge bg-info">{{ license.get_license_type_display }}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>授權金鑰：</strong></td>
+                                    <td>
+                                        {% if license.license_key %}
+                                            <span class="font-monospace">{{ license.license_key }}</span>
+                                        {% else %}
+                                            <span class="text-muted">未設定</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>狀態：</strong></td>
+                                    <td>
+                                        {% if license.status == 'active' %}
+                                            <span class="badge badge-success">{{ license.get_status_display }}</span>
+                                        {% elif license.status == 'expired' %}
+                                            <span class="badge badge-danger">{{ license.get_status_display }}</span>
+                                        {% elif license.status == 'unused' %}
+                                            <span class="badge badge-secondary">{{ license.get_status_display }}</span>
+                                        {% elif license.status == 'retired' %}
+                                            <span class="badge badge-dark">{{ license.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>總授權數：</strong></td>
+                                    <td>{{ license.total_licenses }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>已使用授權：</strong></td>
+                                    <td>
+                                        <span class="{% if license.used_licenses > 0 %}text-primary{% else %}text-muted{% endif %}">
+                                            {{ license.used_licenses }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>可用授權：</strong></td>
+                                    <td>
+                                        <span class="{% if license.available_licenses > 0 %}text-success{% else %}text-danger{% endif %}">
+                                            {{ license.available_licenses }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>建立時間：</strong></td>
+                                    <td>{{ license.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日期資訊 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">日期資訊</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>採購日期：</strong></td>
+                                    <td>{{ license.purchase_date|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>開始日期：</strong></td>
+                                    <td>{{ license.start_date|default:"未設定" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>到期日期：</strong></td>
+                                    <td>
+                                        {% if license.expiry_date %}
+                                            {% if license.is_expired %}
+                                                <span class="text-danger">{{ license.expiry_date }} (已過期)</span>
+                                            {% elif license.days_until_expiry <= 30 %}
+                                                <span class="text-warning">{{ license.expiry_date }} ({{ license.days_until_expiry }}天後到期)</span>
+                                            {% else %}
+                                                <span class="text-success">{{ license.expiry_date }}</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">永久授權</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>到期提醒：</strong></td>
+                                    <td>
+                                        {% if license.expiry_date and not license.is_expired %}
+                                            {% if license.days_until_expiry <= 7 %}
+                                                <span class="badge badge-danger">7天內到期</span>
+                                            {% elif license.days_until_expiry <= 30 %}
+                                                <span class="badge badge-warning">30天內到期</span>
+                                            {% else %}
+                                                <span class="badge badge-success">正常</span>
+                                            {% endif %}
+                                        {% elif license.is_expired %}
+                                            <span class="badge badge-danger">已過期</span>
+                                        {% else %}
+                                            <span class="badge badge-info">永久有效</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 財務資訊 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">財務資訊</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>採購價格：</strong></td>
+                                    <td>
+                                        {% if license.purchase_price %}
+                                            NT$ {{ license.purchase_price|floatformat:0 }}
+                                        {% else %}
+                                            <span class="text-muted">未設定</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>年度維護費用：</strong></td>
+                                    <td>
+                                        {% if license.annual_maintenance_cost %}
+                                            NT$ {{ license.annual_maintenance_cost|floatformat:0 }}
+                                        {% else %}
+                                            <span class="text-muted">未設定</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 備註 -->
+            {% if license.notes %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">備註</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">{{ license.notes|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 側邊資訊 -->
+        <div class="col-lg-4">
+            <!-- 快速操作 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">快速操作</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'assets:software_edit' license.pk %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-edit text-primary"></i> 編輯授權資訊
+                        </a>
+                        <a href="{% url 'assets:software_delete' license.pk %}" class="list-group-item list-group-item-action text-danger"
+                           onclick="return confirm('確定要刪除這個軟體授權嗎？')">
+                            <i class="fas fa-trash"></i> 刪除授權
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 授權統計 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">授權統計</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-4">
+                            <div class="bg-primary text-white rounded p-3 mb-2">
+                                <h4 class="mb-0">{{ license.total_licenses }}</h4>
+                            </div>
+                            <small class="text-muted">總授權數</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-success text-white rounded p-3 mb-2">
+                                <h4 class="mb-0">{{ license.used_licenses }}</h4>
+                            </div>
+                            <small class="text-muted">已使用</small>
+                        </div>
+                        <div class="col-4">
+                            <div class="bg-info text-white rounded p-3 mb-2">
+                                <h4 class="mb-0">{{ license.available_licenses }}</h4>
+                            </div>
+                            <small class="text-muted">可用</small>
+                        </div>
+                    </div>
+                    
+                    <!-- 使用率進度條 -->
+                    <div class="mt-3">
+                        <small class="text-muted">使用率</small>
+                        <div class="progress" style="height: 8px;">
+                            {% widthratio license.used_licenses license.total_licenses 100 as usage_percent %}
+                            <div class="progress-bar 
+                                {% if usage_percent >= 90 %}bg-danger
+                                {% elif usage_percent >= 70 %}bg-warning
+                                {% else %}bg-success{% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ usage_percent }}%"
+                                aria-valuenow="{{ usage_percent }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ usage_percent }}%</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分配的使用者 -->
+            {% if license.assigned_users.exists %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">分配的使用者</h6>
+                </div>
+                <div class="card-body">
+                    <div class="list-group list-group-flush">
+                        {% for user in license.assigned_users.all %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ user.get_full_name|default:user.username }}
+                            <span class="badge badge-primary badge-pill">已分配</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

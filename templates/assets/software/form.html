@@ -1,0 +1,279 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}編輯軟體授權{% else %}新增軟體授權{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        {% if form.instance.pk %}編輯軟體授權{% else %}新增軟體授權{% endif %}
+                    </h1>
+                    <p class="mb-0">
+                        {% if form.instance.pk %}
+                            修改軟體授權資訊
+                        {% else %}
+                            新增一個軟體授權到系統中
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <a href="{% url 'assets:software_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">授權資訊</h6>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- 基本資訊 -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">基本資訊</h6>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.software_name.id_for_label }}" class="form-label">{{ form.software_name.label }} <span class="text-danger">*</span></label>
+                        {{ form.software_name }}
+                        {% if form.software_name.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.software_name.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.version.id_for_label }}" class="form-label">{{ form.version.label }}</label>
+                        {{ form.version }}
+                        {% if form.version.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.version.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.vendor.id_for_label }}" class="form-label">{{ form.vendor.label }}</label>
+                        {{ form.vendor }}
+                        {% if form.vendor.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.vendor.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.license_type.id_for_label }}" class="form-label">{{ form.license_type.label }} <span class="text-danger">*</span></label>
+                        {{ form.license_type }}
+                        {% if form.license_type.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.license_type.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.license_key.id_for_label }}" class="form-label">{{ form.license_key.label }}</label>
+                        {{ form.license_key }}
+                        {% if form.license_key.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.license_key.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">請妥善保管授權金鑰，建議使用安全的方式儲存</div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- 授權數量 -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">授權數量</h6>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.total_licenses.id_for_label }}" class="form-label">{{ form.total_licenses.label }} <span class="text-danger">*</span></label>
+                        {{ form.total_licenses }}
+                        {% if form.total_licenses.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.total_licenses.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.used_licenses.id_for_label }}" class="form-label">{{ form.used_licenses.label }}</label>
+                        {{ form.used_licenses }}
+                        {% if form.used_licenses.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.used_licenses.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">已使用的授權數量不能超過總授權數</div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.status.id_for_label }}" class="form-label">{{ form.status.label }}</label>
+                        {{ form.status }}
+                        {% if form.status.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.status.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- 日期資訊 -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">日期資訊</h6>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.purchase_date.id_for_label }}" class="form-label">{{ form.purchase_date.label }}</label>
+                        {{ form.purchase_date }}
+                        {% if form.purchase_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.purchase_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.start_date.id_for_label }}" class="form-label">{{ form.start_date.label }}</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.start_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ form.expiry_date.id_for_label }}" class="form-label">{{ form.expiry_date.label }}</label>
+                        {{ form.expiry_date }}
+                        {% if form.expiry_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.expiry_date.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">永久授權可以留空</div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- 財務資訊 -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">財務資訊</h6>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.purchase_price.id_for_label }}" class="form-label">{{ form.purchase_price.label }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text">NT$</span>
+                            {{ form.purchase_price }}
+                        </div>
+                        {% if form.purchase_price.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.purchase_price.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.annual_maintenance_cost.id_for_label }}" class="form-label">{{ form.annual_maintenance_cost.label }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text">NT$</span>
+                            {{ form.annual_maintenance_cost }}
+                        </div>
+                        {% if form.annual_maintenance_cost.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.annual_maintenance_cost.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- 使用者分配 -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">使用者分配</h6>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.assigned_users.id_for_label }}" class="form-label">{{ form.assigned_users.label }}</label>
+                        {{ form.assigned_users }}
+                        {% if form.assigned_users.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.assigned_users.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">按住 Ctrl 鍵可以選擇多個使用者</div>
+                    </div>
+                </div>
+
+                <hr>
+
+                <!-- 備註 -->
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-primary mb-3">備註</h6>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ form.notes.id_for_label }}" class="form-label">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                        {% if form.notes.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in form.notes.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 提交按鈕 -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'assets:software_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> 取消
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="{% if form.instance.pk %}fas fa-save{% else %}fas fa-plus{% endif %}"></i>
+                                {% if form.instance.pk %}更新授權{% else %}新增授權{% endif %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// 表單驗證提醒
+document.addEventListener('DOMContentLoaded', function() {
+    const totalLicensesInput = document.getElementById('{{ form.total_licenses.id_for_label }}');
+    const usedLicensesInput = document.getElementById('{{ form.used_licenses.id_for_label }}');
+    
+    function validateLicenses() {
+        const total = parseInt(totalLicensesInput.value) || 0;
+        const used = parseInt(usedLicensesInput.value) || 0;
+        
+        if (used > total) {
+            usedLicensesInput.setCustomValidity('已使用授權數不能超過總授權數');
+        } else {
+            usedLicensesInput.setCustomValidity('');
+        }
+    }
+    
+    totalLicensesInput.addEventListener('input', validateLicenses);
+    usedLicensesInput.addEventListener('input', validateLicenses);
+});
+</script>
+{% endblock %} 

@@ -29,6 +29,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home_view, name='home'),
     path('security/', include('security.urls')),
+    path('assets/', include('assets.urls')),
 ]
 
 # 開發環境下提供媒體檔案服務

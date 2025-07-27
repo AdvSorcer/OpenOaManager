@@ -1,0 +1,351 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}硬體資產詳細資料 - {{ asset.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 頁面標題 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">{{ asset.name }}</h1>
+                    <p class="mb-0">資產標籤：{{ asset.asset_tag }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'assets:hardware_edit' asset.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> 編輯
+                    </a>
+                    <a href="{% url 'assets:hardware_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> 返回列表
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- 基本資訊 -->
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">基本資訊</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>資產標籤：</strong></td>
+                                    <td>{{ asset.asset_tag }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>資產名稱：</strong></td>
+                                    <td>{{ asset.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>資產類別：</strong></td>
+                                    <td>{{ asset.category }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>品牌：</strong></td>
+                                    <td>{{ asset.brand|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>型號：</strong></td>
+                                    <td>{{ asset.model|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>序號：</strong></td>
+                                    <td>{{ asset.serial_number|default:"未設定" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>狀態：</strong></td>
+                                    <td>
+                                        {% if asset.status == 'active' %}
+                                            <span class="badge badge-success">{{ asset.get_status_display }}</span>
+                                        {% elif asset.status == 'maintenance' %}
+                                            <span class="badge badge-warning">{{ asset.get_status_display }}</span>
+                                        {% elif asset.status == 'retired' %}
+                                            <span class="badge badge-secondary">{{ asset.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge badge-info">{{ asset.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>狀況：</strong></td>
+                                    <td>
+                                        {% if asset.condition == 'excellent' %}
+                                            <span class="badge badge-success">{{ asset.get_condition_display }}</span>
+                                        {% elif asset.condition == 'good' %}
+                                            <span class="badge badge-primary">{{ asset.get_condition_display }}</span>
+                                        {% elif asset.condition == 'fair' %}
+                                            <span class="badge badge-warning">{{ asset.get_condition_display }}</span>
+                                        {% else %}
+                                            <span class="badge badge-danger">{{ asset.get_condition_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>位置：</strong></td>
+                                    <td>{{ asset.location|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>分配給：</strong></td>
+                                    <td>
+                                        {% if asset.assigned_to %}
+                                            {{ asset.assigned_to.get_full_name|default:asset.assigned_to.username }}
+                                        {% else %}
+                                            <span class="text-muted">未分配</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>新增時間：</strong></td>
+                                    <td>{{ asset.created_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>更新時間：</strong></td>
+                                    <td>{{ asset.updated_at|date:"Y-m-d H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 採購資訊 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">採購資訊</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>供應商：</strong></td>
+                                    <td>
+                                        {% if asset.vendor %}
+                                            <a href="{% url 'assets:vendor_detail' asset.vendor.pk %}">{{ asset.vendor.name }}</a>
+                                        {% else %}
+                                            <span class="text-muted">未設定</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>採購日期：</strong></td>
+                                    <td>{{ asset.purchase_date|date:"Y-m-d"|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>採購價格：</strong></td>
+                                    <td>
+                                        {% if asset.purchase_price %}
+                                            NT$ {{ asset.purchase_price|floatformat:0 }}
+                                        {% else %}
+                                            <span class="text-muted">未設定</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>發票號碼：</strong></td>
+                                    <td>{{ asset.invoice_number|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>當前價值：</strong></td>
+                                    <td>
+                                        {% if asset.current_value %}
+                                            NT$ {{ asset.current_value|floatformat:0 }}
+                                            <small class="text-muted">(依折舊計算)</small>
+                                        {% else %}
+                                            <span class="text-muted">無法計算</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 保固資訊 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">保固資訊</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>保固開始：</strong></td>
+                                    <td>{{ asset.warranty_start_date|date:"Y-m-d"|default:"未設定" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>保固結束：</strong></td>
+                                    <td>{{ asset.warranty_end_date|date:"Y-m-d"|default:"未設定" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td width="30%"><strong>保固狀態：</strong></td>
+                                    <td>
+                                        {% if asset.warranty_end_date %}
+                                            {% if asset.is_warranty_expired %}
+                                                <span class="badge badge-danger">已過期</span>
+                                            {% elif asset.warranty_days_remaining <= 30 %}
+                                                <span class="badge badge-warning">即將到期 ({{ asset.warranty_days_remaining }} 天)</span>
+                                            {% else %}
+                                                <span class="badge badge-success">有效 ({{ asset.warranty_days_remaining }} 天)</span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">無保固資訊</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>保固提供商：</strong></td>
+                                    <td>{{ asset.warranty_provider|default:"未設定" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 規格資訊 -->
+            {% if asset.specifications %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">規格資訊</h6>
+                </div>
+                <div class="card-body">
+                    <pre class="bg-light p-3 rounded">{{ asset.specifications|default:"無規格資訊" }}</pre>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- 備註 -->
+            {% if asset.notes %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">備註</h6>
+                </div>
+                <div class="card-body">
+                    <p>{{ asset.notes|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- 右側欄位 -->
+        <div class="col-lg-4">
+            <!-- 快速操作 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">快速操作</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'assets:hardware_edit' asset.pk %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-edit"></i> 編輯資產
+                        </a>
+                        <a href="{% url 'assets:maintenance_add' %}?asset={{ asset.pk }}" class="btn btn-success btn-sm">
+                            <i class="fas fa-tools"></i> 新增維修記錄
+                        </a>
+                        <a href="#" class="btn btn-info btn-sm" onclick="window.print()">
+                            <i class="fas fa-print"></i> 列印資產卡
+                        </a>
+                        <hr>
+                        <a href="{% url 'assets:hardware_delete' asset.pk %}" class="btn btn-danger btn-sm" 
+                           onclick="return confirm('確定要刪除這個資產嗎？此操作無法復原。')">
+                            <i class="fas fa-trash"></i> 刪除資產
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 維修記錄摘要 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">維修記錄</h6>
+                    <a href="{% url 'assets:maintenance_add' %}?asset={{ asset.pk }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus"></i> 新增
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if maintenance_records %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>類型</th>
+                                        <th>狀態</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in maintenance_records|slice:":5" %}
+                                    <tr>
+                                        <td>
+                                            <a href="{% url 'assets:maintenance_detail' record.pk %}">
+                                                {{ record.scheduled_date|date:"m/d" }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <small>{{ record.get_maintenance_type_display }}</small>
+                                        </td>
+                                        <td>
+                                            {% if record.status == 'completed' %}
+                                                <span class="badge badge-success badge-sm">{{ record.get_status_display }}</span>
+                                            {% elif record.status == 'in_progress' %}
+                                                <span class="badge badge-warning badge-sm">{{ record.get_status_display }}</span>
+                                            {% else %}
+                                                <span class="badge badge-info badge-sm">{{ record.get_status_display }}</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if maintenance_records.count > 5 %}
+                        <div class="text-center">
+                            <a href="{% url 'assets:maintenance_list' %}?asset={{ asset.pk }}" class="btn btn-sm btn-outline-primary">
+                                查看全部 {{ maintenance_records.count }} 筆記錄
+                            </a>
+                        </div>
+                        {% endif %}
+                    {% else %}
+                        <p class="text-muted mb-0">尚無維修記錄</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .card-header, nav, footer {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %} 

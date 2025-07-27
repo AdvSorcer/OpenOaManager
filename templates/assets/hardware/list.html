@@ -1,0 +1,216 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}硬體資產管理{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">硬體資產管理</h1>
+                    <p class="mb-0">管理公司的硬體設備資產</p>
+                </div>
+                <div>
+                    <a href="{% url 'assets:hardware_add' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 新增硬體資產
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜尋表單 -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">搜尋篩選</h6>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row">
+                <div class="col-md-3 mb-3">
+                    {{ search_form.search.label_tag }}
+                    {{ search_form.search }}
+                </div>
+                <div class="col-md-2 mb-3">
+                    {{ search_form.category.label_tag }}
+                    {{ search_form.category }}
+                </div>
+                <div class="col-md-2 mb-3">
+                    {{ search_form.status.label_tag }}
+                    {{ search_form.status }}
+                </div>
+                <div class="col-md-2 mb-3">
+                    {{ search_form.vendor.label_tag }}
+                    {{ search_form.vendor }}
+                </div>
+                <div class="col-md-3 mb-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary mr-2">
+                        <i class="fas fa-search"></i> 搜尋
+                    </button>
+                    <a href="{% url 'assets:hardware_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> 重置
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 資產列表 -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+            <h6 class="m-0 font-weight-bold text-primary">硬體資產列表</h6>
+            <span class="text-muted">共 {{ page_obj.paginator.count }} 筆資料</span>
+        </div>
+        <div class="card-body">
+            {% if assets %}
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>資產標籤</th>
+                                <th>名稱</th>
+                                <th>類別</th>
+                                <th>品牌/型號</th>
+                                <th>狀態</th>
+                                <th>使用者</th>
+                                <th>保固狀態</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asset in assets %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'assets:hardware_detail' asset.pk %}" class="font-weight-bold">
+                                        {{ asset.asset_tag }}
+                                    </a>
+                                </td>
+                                <td>{{ asset.name }}</td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ asset.category }}</span>
+                                </td>
+                                <td>
+                                    {% if asset.brand and asset.model %}
+                                        {{ asset.brand }} {{ asset.model }}
+                                    {% elif asset.brand %}
+                                        {{ asset.brand }}
+                                    {% elif asset.model %}
+                                        {{ asset.model }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if asset.status == 'active' %}
+                                        <span class="badge bg-success">使用中</span>
+                                    {% elif asset.status == 'inactive' %}
+                                        <span class="badge bg-secondary">閒置</span>
+                                    {% elif asset.status == 'maintenance' %}
+                                        <span class="badge bg-warning">維修中</span>
+                                    {% elif asset.status == 'retired' %}
+                                        <span class="badge bg-dark">已報廢</span>
+                                    {% elif asset.status == 'lost' %}
+                                        <span class="badge bg-danger">遺失</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if asset.assigned_to %}
+                                        {{ asset.assigned_to.get_full_name|default:asset.assigned_to.username }}
+                                    {% else %}
+                                        <span class="text-muted">未分配</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if asset.warranty_end_date %}
+                                        {% if asset.is_warranty_expired %}
+                                            <span class="badge bg-danger">已過期</span>
+                                        {% elif asset.warranty_days_remaining <= 30 %}
+                                            <span class="badge bg-warning">{{ asset.warranty_days_remaining }}天</span>
+                                        {% else %}
+                                            <span class="badge bg-success">{{ asset.warranty_days_remaining }}天</span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-muted">無保固</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'assets:hardware_detail' asset.pk %}" 
+                                           class="btn btn-sm btn-outline-primary" title="查看詳細">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'assets:hardware_edit' asset.pk %}" 
+                                           class="btn btn-sm btn-outline-secondary" title="編輯">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'assets:hardware_delete' asset.pk %}" 
+                                           class="btn btn-sm btn-outline-danger" title="刪除"
+                                           onclick="return confirm('確定要刪除這個資產嗎？')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 分頁導航 -->
+                {% if is_paginated %}
+                <nav aria-label="資產分頁導航">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.vendor %}&vendor={{ request.GET.vendor }}{% endif %}">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.vendor %}&vendor={{ request.GET.vendor }}{% endif %}">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.vendor %}&vendor={{ request.GET.vendor }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.vendor %}&vendor={{ request.GET.vendor }}{% endif %}">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.vendor %}&vendor={{ request.GET.vendor }}{% endif %}">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-laptop fa-3x text-gray-300 mb-3"></i>
+                    <p class="text-muted">目前沒有硬體資產記錄</p>
+                    <a href="{% url 'assets:hardware_add' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 新增第一個硬體資產
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

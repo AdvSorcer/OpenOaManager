@@ -60,27 +60,27 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-6">
-                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                        <a href="{% url 'assets:hardware_list' %}" class="btn btn-outline-success btn-sm w-100 mb-2">
                             <i class="bi bi-pc"></i><br>硬體設備
-                        </button>
+                        </a>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-outline-secondary btn-sm w-100 mb-2" disabled>
+                        <a href="{% url 'assets:software_list' %}" class="btn btn-outline-success btn-sm w-100 mb-2">
                             <i class="bi bi-software"></i><br>軟體授權
-                        </button>
+                        </a>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                        <a href="{% url 'assets:warranty_alerts' %}" class="btn btn-outline-success btn-sm w-100">
                             <i class="bi bi-calendar-check"></i><br>保固管理
-                        </button>
+                        </a>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-outline-secondary btn-sm w-100" disabled>
+                        <a href="{% url 'assets:purchase_list' %}" class="btn btn-outline-success btn-sm w-100">
                             <i class="bi bi-cart"></i><br>採購申請
-                        </button>
+                        </a>
                     </div>
                 </div>
-                <small class="text-muted">即將推出...</small>
+  
             </div>
         </div>
     </div>
@@ -224,5 +224,5 @@
             </a>
         </div>
     </div>
-</div>
-{% endblock %} 
+ </div>
+ {% endblock %} 
